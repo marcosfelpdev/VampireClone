@@ -28,8 +28,8 @@ const player = new Player(
 
 // Atualização
 function update(){
-
-    player.update(keys);
+    
+    player.update(keys, canvas);
 
 }
 

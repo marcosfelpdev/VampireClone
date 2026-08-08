@@ -13,20 +13,28 @@ class Player{
 
     }
 
-    update(keys){
+    update(keys, canvas){
 
-        if(keys["w"])
-            this.y -= this.speed;
+        let dx = 0;
+        let dy = 0;
 
-        if(keys["s"])
-            this.y += this.speed;
+        if(keys['w']) dy--;
+        if(keys['s']) dy++;
+        if(keys['a']) dx--;
+        if(keys['d']) dx++;
 
-        if(keys["a"])
-            this.x -= this.speed;
+        if(dx !== 0 || dy !== 0){
 
-        if(keys["d"])
-            this.x += this.speed;
+            const tamanho = Math.hypot(dx, dy)
 
+            dx /= tamanho;
+            dy /= tamanho;
+
+            
+        }
+
+        this.x += dx * this.speed;
+        this.y += dy * this.speed;
     }
 
     draw(ctx){
