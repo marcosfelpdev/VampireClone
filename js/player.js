@@ -35,6 +35,9 @@ class Player{
 
         this.x += dx * this.speed;
         this.y += dy * this.speed;
+
+        this.x = Math.max(this.radius, Math.min(canvas.width - this.radius, this.x));
+        this.y = Math.max(this.radius, Math.min(canvas.height - this.radius, this.y));
     }
 
     draw(ctx){
