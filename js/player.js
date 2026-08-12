@@ -7,7 +7,7 @@ class Player{
 
         this.radius = 20;
 
-        this.speed = 20;
+        this.speed = 4;
 
         this.color = "#00D9FF";
 
