@@ -1,6 +1,6 @@
-class Player{
+class Player {
 
-    constructor(x,y){
+    constructor(x, y) {
 
         this.x = x;
         this.y = y;
@@ -9,49 +9,91 @@ class Player{
         this.speed = 4;
         this.color = "#00D9FF";
 
+
+        // =====================
+        // VIDA
+        // =====================
+
         this.maxHealth = 100;
         this.health = 100;
 
         this.invincibleTimer = 0;
 
+
+        // =====================
+        // TIROS
+        // =====================
+
+        this.bulletDamage = 1;
+
+        this.bulletSpeed = 7;
+
+        this.bulletSize = 5;
     }
 
-    update(keys, canvas){
+
+    update(keys, canvas) {
 
         let dx = 0;
         let dy = 0;
 
-        if(keys['w']) dy--;
-        if(keys['s']) dy++;
-        if(keys['a']) dx--;
-        if(keys['d']) dx++;
 
-        if(dx !== 0 || dy !== 0){
+        if (keys["w"]) dy--;
+        if (keys["s"]) dy++;
 
-            const tamanho = Math.hypot(dx, dy)
+        if (keys["a"]) dx--;
+        if (keys["d"]) dx++;
+
+
+        if (dx !== 0 || dy !== 0) {
+
+            const tamanho =
+                Math.hypot(dx, dy);
 
             dx /= tamanho;
             dy /= tamanho;
 
-            
         }
 
-        this.x += dx * this.speed;
-        this.y += dy * this.speed;
 
-        this.x = Math.max(this.radius, Math.min(canvas.width - this.radius, this.x));
-        this.y = Math.max(this.radius, Math.min(canvas.height - this.radius, this.y));
+        this.x +=
+            dx * this.speed;
 
-        if(this.invincibleTimer > 0) {
+        this.y +=
+            dy * this.speed;
+
+
+        this.x =
+            Math.max(
+                this.radius,
+                Math.min(
+                    canvas.width - this.radius,
+                    this.x
+                )
+            );
+
+
+        this.y =
+            Math.max(
+                this.radius,
+                Math.min(
+                    canvas.height - this.radius,
+                    this.y
+                )
+            );
+
+
+        if (this.invincibleTimer > 0) {
+
             this.invincibleTimer--;
+
         }
+
     }
 
 
     takeDamage(amount) {
 
-        // Se ainda estiver invulnerável,
-        // não sofre outro dano
         if (this.invincibleTimer > 0) {
 
             return;
@@ -62,7 +104,6 @@ class Player{
         this.health -= amount;
 
 
-        // Evita vida negativa
         if (this.health < 0) {
 
             this.health = 0;
@@ -70,14 +111,15 @@ class Player{
         }
 
 
-        // Aproximadamente 1 segundo
         this.invincibleTimer = 60;
+
     }
 
 
-    draw(ctx){
+    draw(ctx) {
 
-        ctx.fillStyle = this.color;
+        ctx.fillStyle =
+            this.color;
 
         ctx.beginPath();
 
@@ -86,7 +128,7 @@ class Player{
             this.y,
             this.radius,
             0,
-            Math.PI*2
+            Math.PI * 2
         );
 
         ctx.fill();
