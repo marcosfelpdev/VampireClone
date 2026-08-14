@@ -6,10 +6,13 @@ class Player{
         this.y = y;
 
         this.radius = 20;
-
         this.speed = 4;
-
         this.color = "#00D9FF";
+
+        this.maxHealth = 100;
+        this.health = 100;
+
+        this.invincibleTimer = 0;
 
     }
 
@@ -38,7 +41,39 @@ class Player{
 
         this.x = Math.max(this.radius, Math.min(canvas.width - this.radius, this.x));
         this.y = Math.max(this.radius, Math.min(canvas.height - this.radius, this.y));
+
+        if(this.invincibleTimer > 0) {
+            this.invincibleTimer--;
+        }
     }
+
+
+    takeDamage(amount) {
+
+        // Se ainda estiver invulnerável,
+        // não sofre outro dano
+        if (this.invincibleTimer > 0) {
+
+            return;
+
+        }
+
+
+        this.health -= amount;
+
+
+        // Evita vida negativa
+        if (this.health < 0) {
+
+            this.health = 0;
+
+        }
+
+
+        // Aproximadamente 1 segundo
+        this.invincibleTimer = 60;
+    }
+
 
     draw(ctx){
 

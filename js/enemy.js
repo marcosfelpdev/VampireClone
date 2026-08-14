@@ -1,16 +1,18 @@
 class Enemy {
 
-    constructor(x, y) {
+    constructor(x, y, health = 3, speed = 1.5) {
 
         this.x = x;
         this.y = y;
 
         this.radius = 15;
-        this.speed = 1.5;
-        this.color = "#FF4444";
 
-        this.health = 3;
+        this.speed = speed;
+        this.health = health;
+
+        this.color = "#FF4444";
     }
+
 
     update(player) {
 
@@ -23,8 +25,10 @@ class Enemy {
 
             this.x += (dx / distance) * this.speed;
             this.y += (dy / distance) * this.speed;
+
         }
     }
+
 
     draw(ctx) {
 
@@ -41,5 +45,7 @@ class Enemy {
         );
 
         ctx.fill();
+
     }
+
 }

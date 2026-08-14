@@ -1,3 +1,7 @@
+// =========================
+// CANVAS
+// =========================
+
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
@@ -31,31 +35,127 @@ const player = new Player(
 
 
 // =========================
-// INIMIGOS
+// ARRAYS
 // =========================
 
 const enemies = [];
-
-enemies.push(
-    new Enemy(100, 100)
-);
-
-enemies.push(
-    new Enemy(800, 100)
-);
-
-enemies.push(
-    new Enemy(100, 500)
-);
-
-
-// =========================
-// TIROS
-// =========================
-
 const bullets = [];
 
+
+// =========================
+// TIRO
+// =========================
+
 let shootTimer = 0;
+let shootDelay = 30;
+
+
+// =========================
+// ROUNDS
+// =========================
+
+let round = 1;
+let enemiesPerRound = 5;
+
+
+// =========================
+// ESTADOS DO JOGO
+// =========================
+
+let choosingUpgrade = false;
+let gameOver = false;
+
+
+// =========================
+// CRIAR INIMIGO
+// =========================
+
+function createEnemy() {
+
+    const side = Math.floor(
+        Math.random() * 4
+    );
+
+    let x;
+    let y;
+
+
+    // Cima
+    if (side === 0) {
+
+        x = Math.random() * canvas.width;
+        y = -30;
+
+    }
+
+    // Direita
+    else if (side === 1) {
+
+        x = canvas.width + 30;
+        y = Math.random() * canvas.height;
+
+    }
+
+    // Baixo
+    else if (side === 2) {
+
+        x = Math.random() * canvas.width;
+        y = canvas.height + 30;
+
+    }
+
+    // Esquerda
+    else {
+
+        x = -30;
+        y = Math.random() * canvas.height;
+
+    }
+
+
+    // Vida aumenta a cada 3 rounds
+    const enemyHealth =
+        3 +
+        Math.floor(
+            (round - 1) / 3
+        );
+
+
+    // Velocidade aumenta um pouco
+    // a cada round
+    const enemySpeed =
+        1.5 +
+        (round - 1) * 0.05;
+
+
+    enemies.push(
+        new Enemy(
+            x,
+            y,
+            enemyHealth,
+            enemySpeed
+        )
+    );
+}
+
+
+// =========================
+// INICIAR ROUND
+// =========================
+
+function startRound() {
+
+    for (
+        let i = 0;
+        i < enemiesPerRound;
+        i++
+    ) {
+
+        createEnemy();
+
+    }
+
+}
 
 
 // =========================
@@ -65,37 +165,195 @@ let shootTimer = 0;
 function getNearestEnemy() {
 
     let nearestEnemy = null;
-
     let nearestDistance = Infinity;
+
 
     enemies.forEach(enemy => {
 
-        const dx = enemy.x - player.x;
-        const dy = enemy.y - player.y;
+        const dx =
+            enemy.x - player.x;
 
-        const distance = Math.hypot(dx, dy);
+        const dy =
+            enemy.y - player.y;
 
-        if (distance < nearestDistance) {
 
-            nearestDistance = distance;
+        const distance =
+            Math.hypot(dx, dy);
 
-            nearestEnemy = enemy;
+
+        if (
+            distance <
+            nearestDistance
+        ) {
+
+            nearestDistance =
+                distance;
+
+            nearestEnemy =
+                enemy;
+
         }
+
     });
+
 
     return nearestEnemy;
 }
 
 
 // =========================
-// ATUALIZAÇÃO DO JOGO
+// ESCOLHER UPGRADE
+// =========================
+
+function chooseUpgrade(option) {
+
+    // =====================
+    // OPÇÃO 1
+    // VELOCIDADE
+    // =====================
+
+    if (option === 1) {
+
+        player.speed += 0.5;
+
+    }
+
+
+    // =====================
+    // OPÇÃO 2
+    // VIDA
+    // =====================
+
+    else if (option === 2) {
+
+        player.maxHealth += 20;
+
+        player.health += 20;
+
+
+        // Evita ultrapassar
+        // a vida máxima
+        if (
+            player.health >
+            player.maxHealth
+        ) {
+
+            player.health =
+                player.maxHealth;
+
+        }
+
+    }
+
+
+    // =====================
+    // OPÇÃO 3
+    // CADÊNCIA
+    // =====================
+
+    else if (option === 3) {
+
+        shootDelay -= 3;
+
+
+        // Limite mínimo
+        // da velocidade de disparo
+        if (shootDelay < 10) {
+
+            shootDelay = 10;
+
+        }
+
+    }
+
+
+    // Sai da tela de upgrade
+    choosingUpgrade = false;
+
+
+    // Avança o round
+    round++;
+
+
+    // Aumenta quantidade
+    // de inimigos
+    enemiesPerRound += 3;
+
+
+    // Reinicia o contador
+    // de tiro
+    shootTimer = 0;
+
+
+    // Começa próxima horda
+    startRound();
+
+}
+
+
+// =========================
+// EVENTO DAS OPÇÕES
+// DE UPGRADE
+// =========================
+
+window.addEventListener(
+    "keydown",
+    (e) => {
+
+        if (!choosingUpgrade) {
+            return;
+        }
+
+
+        if (e.key === "1") {
+
+            chooseUpgrade(1);
+
+        }
+
+        else if (e.key === "2") {
+
+            chooseUpgrade(2);
+
+        }
+
+        else if (e.key === "3") {
+
+            chooseUpgrade(3);
+
+        }
+
+    }
+);
+
+
+// =========================
+// UPDATE
 // =========================
 
 function update() {
 
-    // -------------------------
-    // Atualiza jogador
-    // -------------------------
+    // =====================
+    // GAME OVER
+    // =====================
+
+    if (gameOver) {
+        return;
+    }
+
+
+    // =====================
+    // TELA DE UPGRADE
+    // =====================
+
+    if (choosingUpgrade) {
+        return;
+    }
+
+
+    // =====================
+    // JOGADOR
+    // =====================
 
     player.update(
         keys,
@@ -103,9 +361,9 @@ function update() {
     );
 
 
-    // -------------------------
-    // Atualiza inimigos
-    // -------------------------
+    // =====================
+    // INIMIGOS
+    // =====================
 
     enemies.forEach(enemy => {
 
@@ -114,15 +372,52 @@ function update() {
     });
 
 
-    // -------------------------
-    // Tiro automático
-    // -------------------------
+    // =====================
+    // COLISÃO
+    // INIMIGO x JOGADOR
+    // =====================
+
+    for (const enemy of enemies) {
+
+        const dx =
+            enemy.x - player.x;
+
+        const dy =
+            enemy.y - player.y;
+
+
+        const distance =
+            Math.hypot(dx, dy);
+
+
+        if (
+            distance <
+            enemy.radius +
+            player.radius
+        ) {
+
+            player.takeDamage(10);
+
+        }
+
+    }
+
+
+    // =====================
+    // TIRO AUTOMÁTICO
+    // =====================
 
     shootTimer++;
 
-    if (shootTimer >= 30) {
 
-        const target = getNearestEnemy();
+    if (
+        shootTimer >= shootDelay &&
+        enemies.length > 0
+    ) {
+
+        const target =
+            getNearestEnemy();
+
 
         if (target) {
 
@@ -133,15 +428,18 @@ function update() {
                     target
                 )
             );
+
         }
 
+
         shootTimer = 0;
+
     }
 
 
-    // -------------------------
-    // Atualiza tiros
-    // -------------------------
+    // =====================
+    // ATUALIZA TIROS
+    // =====================
 
     bullets.forEach(bullet => {
 
@@ -150,14 +448,14 @@ function update() {
     });
 
 
-    // -------------------------
-    // Colisão
-    // tiro x inimigo
-    // -------------------------
+    // =====================
+    // COLISÃO
+    // TIRO x INIMIGO
+    // =====================
 
-    bullets.forEach(bullet => {
+    for (const bullet of bullets) {
 
-        enemies.forEach(enemy => {
+        for (const enemy of enemies) {
 
             const dx =
                 bullet.x - enemy.x;
@@ -165,29 +463,33 @@ function update() {
             const dy =
                 bullet.y - enemy.y;
 
+
             const distance =
                 Math.hypot(dx, dy);
 
 
             if (
                 distance <
-                bullet.radius + enemy.radius
+                bullet.radius +
+                enemy.radius
             ) {
 
                 enemy.health--;
 
                 bullet.remove = true;
 
+                break;
+
             }
 
-        });
+        }
 
-    });
+    }
 
 
-    // -------------------------
-    // Remove inimigos mortos
-    // -------------------------
+    // =====================
+    // REMOVE INIMIGOS MORTOS
+    // =====================
 
     for (
         let i = enemies.length - 1;
@@ -195,18 +497,23 @@ function update() {
         i--
     ) {
 
-        if (enemies[i].health <= 0) {
+        if (
+            enemies[i].health <= 0
+        ) {
 
-            enemies.splice(i, 1);
+            enemies.splice(
+                i,
+                1
+            );
 
         }
 
     }
 
 
-    // -------------------------
-    // Remove tiros
-    // -------------------------
+    // =====================
+    // REMOVE TIROS
+    // =====================
 
     for (
         let i = bullets.length - 1;
@@ -214,7 +521,8 @@ function update() {
         i--
     ) {
 
-        const bullet = bullets[i];
+        const bullet =
+            bullets[i];
 
 
         const outside =
@@ -229,9 +537,44 @@ function update() {
             outside
         ) {
 
-            bullets.splice(i, 1);
+            bullets.splice(
+                i,
+                1
+            );
 
         }
+
+    }
+
+
+    // =====================
+    // GAME OVER
+    // =====================
+
+    if (
+        player.health <= 0
+    ) {
+
+        gameOver = true;
+
+        return;
+
+    }
+
+
+    // =====================
+    // FIM DO ROUND
+    // =====================
+
+    if (
+        enemies.length === 0
+    ) {
+
+        // Remove tiros que ainda
+        // estavam voando
+        bullets.length = 0;
+
+        choosingUpgrade = true;
 
     }
 
@@ -239,12 +582,15 @@ function update() {
 
 
 // =========================
-// DESENHO DO JOGO
+// DRAW
 // =========================
 
 function draw() {
 
-    // Limpa o Canvas
+    // =====================
+    // LIMPA CANVAS
+    // =====================
+
     ctx.clearRect(
         0,
         0,
@@ -253,11 +599,17 @@ function draw() {
     );
 
 
-    // Desenha jogador
+    // =====================
+    // JOGADOR
+    // =====================
+
     player.draw(ctx);
 
 
-    // Desenha inimigos
+    // =====================
+    // INIMIGOS
+    // =====================
+
     enemies.forEach(enemy => {
 
         enemy.draw(ctx);
@@ -265,12 +617,183 @@ function draw() {
     });
 
 
-    // Desenha tiros
+    // =====================
+    // TIROS
+    // =====================
+
     bullets.forEach(bullet => {
 
         bullet.draw(ctx);
 
     });
+
+
+    // =====================
+    // HUD
+    // =====================
+
+    ctx.fillStyle = "white";
+
+    ctx.font = "20px Arial";
+
+    ctx.textAlign = "left";
+
+
+    ctx.fillText(
+        "Round: " + round,
+        20,
+        30
+    );
+
+
+    ctx.fillText(
+        "Inimigos: " +
+        enemies.length,
+        20,
+        60
+    );
+
+
+    ctx.fillText(
+        "Vida: " +
+        player.health +
+        " / " +
+        player.maxHealth,
+        20,
+        90
+    );
+
+
+    // =====================
+    // TELA DE UPGRADE
+    // =====================
+
+    if (choosingUpgrade) {
+
+        // Fundo escuro
+        ctx.fillStyle =
+            "rgba(0, 0, 0, 0.75)";
+
+
+        ctx.fillRect(
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
+
+
+        // Título
+        ctx.fillStyle = "white";
+
+        ctx.textAlign = "center";
+
+        ctx.font = "36px Arial";
+
+
+        ctx.fillText(
+            "Escolha um Upgrade",
+            canvas.width / 2,
+            150
+        );
+
+
+        // =================
+        // OPÇÃO 1
+        // =================
+
+        ctx.font = "24px Arial";
+
+
+        ctx.fillText(
+            "1 - Velocidade +0.5",
+            canvas.width / 2,
+            240
+        );
+
+
+        // =================
+        // OPÇÃO 2
+        // =================
+
+        ctx.fillText(
+            "2 - Vida Máxima +20",
+            canvas.width / 2,
+            310
+        );
+
+
+        // =================
+        // OPÇÃO 3
+        // =================
+
+        ctx.fillText(
+            "3 - Cadência de Tiro",
+            canvas.width / 2,
+            380
+        );
+
+
+        // Instrução
+        ctx.font = "18px Arial";
+
+
+        ctx.fillText(
+            "Pressione 1, 2 ou 3",
+            canvas.width / 2,
+            460
+        );
+
+    }
+
+
+    // =====================
+    // GAME OVER
+    // =====================
+
+    if (gameOver) {
+
+        ctx.fillStyle =
+            "rgba(0, 0, 0, 0.75)";
+
+
+        ctx.fillRect(
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
+
+
+        ctx.fillStyle = "white";
+
+        ctx.textAlign = "center";
+
+        ctx.font = "50px Arial";
+
+
+        ctx.fillText(
+            "GAME OVER",
+            canvas.width / 2,
+            canvas.height / 2
+        );
+
+
+        ctx.font = "22px Arial";
+
+
+        ctx.fillText(
+            "Round alcançado: " +
+            round,
+            canvas.width / 2,
+            canvas.height / 2 + 50
+        );
+
+    }
+
+
+    // Volta para o alinhamento padrão
+    ctx.textAlign = "left";
 
 }
 
@@ -293,7 +816,9 @@ function gameLoop() {
 
 
 // =========================
-// INICIA O JOGO
+// INÍCIO DO JOGO
 // =========================
+
+startRound();
 
 gameLoop();
