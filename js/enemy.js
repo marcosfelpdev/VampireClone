@@ -4,32 +4,26 @@ class Enemy {
 
         this.x = x;
         this.y = y;
+
         this.radius = 15;
         this.speed = 1.5;
-        this.color = "#e74c3c";
+        this.color = "#FF4444";
 
+        this.health = 3;
     }
 
     update(player) {
 
-        // Descobre a distância até o jogador
         const dx = player.x - this.x;
         const dy = player.y - this.y;
 
         const distance = Math.hypot(dx, dy);
 
-        // Evita divisão por zero
-        if (distance === 0)
-            return;
+        if (distance > 0) {
 
-        // Normaliza a direção
-        const directionX = dx / distance;
-        const directionY = dy / distance;
-
-        // Move o inimigo em direção ao jogador
-        this.x += directionX * this.speed;
-        this.y += directionY * this.speed;
-
+            this.x += (dx / distance) * this.speed;
+            this.y += (dy / distance) * this.speed;
+        }
     }
 
     draw(ctx) {
@@ -47,7 +41,5 @@ class Enemy {
         );
 
         ctx.fill();
-
     }
-
 }

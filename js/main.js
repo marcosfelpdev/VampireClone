@@ -1,4 +1,3 @@
-// Canvas
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
@@ -6,108 +5,246 @@ canvas.width = 900;
 canvas.height = 600;
 
 
-// Teclado
+// =========================
+// TECLADO
+// =========================
+
 const keys = {};
 
 window.addEventListener("keydown", (e) => {
-
     keys[e.key.toLowerCase()] = true;
-
 });
 
 window.addEventListener("keyup", (e) => {
-
     keys[e.key.toLowerCase()] = false;
-
 });
 
 
-// Jogador
+// =========================
+// JOGADOR
+// =========================
+
 const player = new Player(
     canvas.width / 2,
     canvas.height / 2
 );
 
 
-// Inimigos
+// =========================
+// INIMIGOS
+// =========================
+
 const enemies = [];
 
+enemies.push(
+    new Enemy(100, 100)
+);
 
-// Cria um inimigo
-function createEnemy() {
+enemies.push(
+    new Enemy(800, 100)
+);
 
-    const side = Math.floor(Math.random() * 4);
-
-    let x;
-    let y;
-
-
-    // Cima
-    if (side === 0) {
-
-        x = Math.random() * canvas.width;
-        y = -30;
-
-    }
-
-    // Direita
-    else if (side === 1) {
-
-        x = canvas.width + 30;
-        y = Math.random() * canvas.height;
-
-    }
-
-    // Baixo
-    else if (side === 2) {
-
-        x = Math.random() * canvas.width;
-        y = canvas.height + 30;
-
-    }
-
-    // Esquerda
-    else {
-
-        x = -30;
-        y = Math.random() * canvas.height;
-
-    }
+enemies.push(
+    new Enemy(100, 500)
+);
 
 
-    enemies.push(
-        new Enemy(x, y)
-    );
+// =========================
+// TIROS
+// =========================
 
+const bullets = [];
+
+let shootTimer = 0;
+
+
+// =========================
+// ENCONTRAR INIMIGO MAIS PRÓXIMO
+// =========================
+
+function getNearestEnemy() {
+
+    let nearestEnemy = null;
+
+    let nearestDistance = Infinity;
+
+    enemies.forEach(enemy => {
+
+        const dx = enemy.x - player.x;
+        const dy = enemy.y - player.y;
+
+        const distance = Math.hypot(dx, dy);
+
+        if (distance < nearestDistance) {
+
+            nearestDistance = distance;
+
+            nearestEnemy = enemy;
+        }
+    });
+
+    return nearestEnemy;
 }
 
 
-// Cria alguns inimigos inicialmente
-createEnemy();
-createEnemy();
-createEnemy();
+// =========================
+// ATUALIZAÇÃO DO JOGO
+// =========================
 
-
-// Atualização
 function update() {
 
-    // Jogador
-    player.update(keys, canvas);
+    // -------------------------
+    // Atualiza jogador
+    // -------------------------
+
+    player.update(
+        keys,
+        canvas
+    );
 
 
-    // Inimigos
-    for (const enemy of enemies) {
+    // -------------------------
+    // Atualiza inimigos
+    // -------------------------
+
+    enemies.forEach(enemy => {
 
         enemy.update(player);
 
+    });
+
+
+    // -------------------------
+    // Tiro automático
+    // -------------------------
+
+    shootTimer++;
+
+    if (shootTimer >= 30) {
+
+        const target = getNearestEnemy();
+
+        if (target) {
+
+            bullets.push(
+                new Bullet(
+                    player.x,
+                    player.y,
+                    target
+                )
+            );
+        }
+
+        shootTimer = 0;
+    }
+
+
+    // -------------------------
+    // Atualiza tiros
+    // -------------------------
+
+    bullets.forEach(bullet => {
+
+        bullet.update();
+
+    });
+
+
+    // -------------------------
+    // Colisão
+    // tiro x inimigo
+    // -------------------------
+
+    bullets.forEach(bullet => {
+
+        enemies.forEach(enemy => {
+
+            const dx =
+                bullet.x - enemy.x;
+
+            const dy =
+                bullet.y - enemy.y;
+
+            const distance =
+                Math.hypot(dx, dy);
+
+
+            if (
+                distance <
+                bullet.radius + enemy.radius
+            ) {
+
+                enemy.health--;
+
+                bullet.remove = true;
+
+            }
+
+        });
+
+    });
+
+
+    // -------------------------
+    // Remove inimigos mortos
+    // -------------------------
+
+    for (
+        let i = enemies.length - 1;
+        i >= 0;
+        i--
+    ) {
+
+        if (enemies[i].health <= 0) {
+
+            enemies.splice(i, 1);
+
+        }
+
+    }
+
+
+    // -------------------------
+    // Remove tiros
+    // -------------------------
+
+    for (
+        let i = bullets.length - 1;
+        i >= 0;
+        i--
+    ) {
+
+        const bullet = bullets[i];
+
+
+        const outside =
+            bullet.x < 0 ||
+            bullet.x > canvas.width ||
+            bullet.y < 0 ||
+            bullet.y > canvas.height;
+
+
+        if (
+            bullet.remove ||
+            outside
+        ) {
+
+            bullets.splice(i, 1);
+
+        }
+
     }
 
 }
 
 
-// Desenho
+// =========================
+// DESENHO DO JOGO
+// =========================
+
 function draw() {
 
+    // Limpa o Canvas
     ctx.clearRect(
         0,
         0,
@@ -116,30 +253,47 @@ function draw() {
     );
 
 
-    // Inimigos
-    for (const enemy of enemies) {
+    // Desenha jogador
+    player.draw(ctx);
+
+
+    // Desenha inimigos
+    enemies.forEach(enemy => {
 
         enemy.draw(ctx);
 
-    }
+    });
 
 
-    // Jogador
-    player.draw(ctx);
+    // Desenha tiros
+    bullets.forEach(bullet => {
+
+        bullet.draw(ctx);
+
+    });
 
 }
 
 
-// Loop principal
+// =========================
+// GAME LOOP
+// =========================
+
 function gameLoop() {
 
     update();
 
     draw();
 
-    requestAnimationFrame(gameLoop);
+    requestAnimationFrame(
+        gameLoop
+    );
 
 }
 
+
+// =========================
+// INICIA O JOGO
+// =========================
 
 gameLoop();
